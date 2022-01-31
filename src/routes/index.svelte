@@ -2,23 +2,31 @@
 	import Card from '../components/Card/card.svelte';
 	import { onMount } from 'svelte';
 	import http from '../services/appService';
+	import Button from '../components/Button/Button.svelte';
 
 	let text = '';
 	let timeout: NodeJS.Timeout;
 	let characters = [];
 
-	$: page = '';
+	let next = '';
+	let prev = '';
 
-	function onPageChange() {
-		http.getWithUrl(page).then((data) => {
+	$: disabled = {
+		left: prev === '' || prev === null,
+		right: next === '' || next === null
+	};
+
+	function onPageChange(url: string) {
+		http.getWithUrl(url).then((data) => {
 			characters = data.results;
-			page = data.info.next;
+			next = data.info.next;
+			prev = data.info.prev;
 		});
 	}
 
 	function onTimeout() {
 		http.getByName(text).then((data) => {
-			page = data.info.next;
+			next = data.info.next;
 			characters = data.results;
 		});
 	}
@@ -26,7 +34,8 @@
 	onMount(() => {
 		http.getAll<{ info: any; results: any[] }>().then((data) => {
 			characters = data.results;
-			page = data.info.next;
+			next = data.info.next;
+			prev = data.info.prev;
 		});
 	});
 
@@ -44,23 +53,14 @@
 		</h1>
 	</header>
 	<section class="flex flex-row h-32 w-full p-4 items-center justify-center">
-		<button
-			disabled={page !== ''}
-			class={` m-2 p-4 text-white rounded border-2 border-gray-800 transition focus:border-purple-600 outline-0 hover:border-purple-900 text-white ${
-				page !== '' ? 'bg-gray-900 bg-gray-900' : 'bg-gray-800'
-			}`}>Previous</button
-		>
+		<Button disabled={disabled.left} onClick={() => onPageChange(prev)}>Previous</Button>
 		<input
 			on:input={onChange}
 			placeholder="Search character"
 			type="search"
-			class="w-full sm:w-2/3 lg:w-1/2 p-3 text-2xl bg-gray-800 rounded border-2 border-gray-800 transition focus:border-purple-600 outline-0 hover:border-purple-900 text-purple-600"
+			class={`w-full sm:w-2/3 lg:w-1/2 p-3 text-2xl bg-gray-800 rounded border-2 border-gray-800 transition focus:border-purple-600 outline-0 hover:border-purple-900 text-purple-600`}
 		/>
-		<button
-			on:click={onPageChange}
-			class="bg-gray-800 m-2 p-4 text-white rounded border-2 border-gray-800 transition focus:border-purple-600 outline-0 hover:border-purple-900 text-white "
-			>Next</button
-		>
+		<Button disabled={disabled.right} onClick={() => onPageChange(next)}>Next</Button>
 	</section>
 	{#if characters.length > 0}
 		<section class="flex flex-wrap justify-center">
@@ -76,6 +76,3 @@
 		</section>
 	{/if}
 </main>
-
-<style scoped>
-</style>
