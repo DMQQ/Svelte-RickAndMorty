@@ -52,7 +52,9 @@
 			Rick And Morty Svelte
 		</h1>
 	</header>
-	<section class="flex flex-row h-32 w-full p-4 items-center justify-center">
+	<section
+		class="bg-gray-900 flex flex-row h-32 w-full p-4 items-center justify-center sticky top-0"
+	>
 		<Button disabled={disabled.left} onClick={() => onPageChange(prev)}>Previous</Button>
 		<input
 			on:input={onChange}
@@ -71,6 +73,7 @@
 					status={character.status}
 					species={character.species}
 					gender={character.species}
+					id={character.id}
 				/>
 			{/each}
 		</section>
